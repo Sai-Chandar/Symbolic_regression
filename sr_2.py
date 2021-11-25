@@ -2,11 +2,12 @@ from deap import base, creator, gp, tools, algorithms
 import operator, math, random, numpy
 import pandas as pd
 import matplotlib.pyplot as plt
-import networkx as nx
 
-df = pd.read_csv("data1.csv")
+df = pd.read_csv("data2.csv")
 
-X = df["x"].to_list()
+X1 = df["x1"].to_list()
+X2 = df["x2"].to_list()
+X3 = df["x3"].to_list()
 Y = df["y"].to_list()
 
 
@@ -17,7 +18,7 @@ def protectedDiv(left, right):
     except ZeroDivisionError:
         return 1
 
-pset = gp.PrimitiveSet("main", 1)
+pset = gp.PrimitiveSet("main", 3)
 pset.addPrimitive(operator.add, 2)
 pset.addPrimitive(operator.sub, 2)
 pset.addPrimitive(operator.mul, 2)
@@ -27,7 +28,9 @@ pset.addPrimitive(operator.neg, 1)
 # pset.addPrimitive(math.sin, 1)
 pset.addEphemeralConstant("c", lambda: random.uniform(-10000, 10000))
 
-pset.renameArguments(ARG0 = 'x')
+pset.renameArguments(ARG0 = 'x1')
+pset.renameArguments(ARG1 = 'x2')
+pset.renameArguments(ARG2 = 'x3')
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -40,7 +43,7 @@ toolbox.register("compile", gp.compile, pset = pset)
 
 def evalSymbReg(individual, points):
     func = toolbox.compile(expr = individual)
-    sqerrors = ((func(x) - y)**2 for x, y in zip(X, points))
+    sqerrors = ((func(x1, x2, x3) - y)**2 for x1, x2, x3, y in zip(X1, X2, X3, points))
     return math.fsum(sqerrors)/ len(points),
 
 toolbox.register("evaluate", evalSymbReg, points = Y)
@@ -63,27 +66,19 @@ mstats.register("max", numpy.max)
 pop = toolbox.population(n= 400)
 hof = tools.HallOfFame(1)
 
-CXPB = 0.6
-MUTPB = 0.1
-NGEN = 100
-
-pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
+pop, log = algorithms.eaSimple(pop, toolbox, 0.6, 0.1, 100, stats = mstats, halloffame = hof, verbose=True)
 
 print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
 
 func = toolbox.compile(expr = hof[0])
 
+import inspect
+print(inspect.getargspec(func))
 
-# check function arguments 
-# import inspect
-# print(inspect.getargspec(func))
-
-
-# plot the final best solution
-x = list(range(1, 255))
-y = [func(i) for i in x]
+# x = list(range(1, 255))
+# y = [func(i) for i in x]
 
 
-plt.plot(x, y)
-plt.scatter(X, Y)
-plt.show()
+# plt.plot(x, y)
+# plt.scatter(X, Y)
+# plt.show()
