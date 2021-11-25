@@ -1,5 +1,6 @@
 from deap import base, creator, gp, tools, algorithms
 import operator, math, random, numpy
+from numpy.core.numeric import Inf
 import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -9,6 +10,14 @@ df = pd.read_csv("data1.csv")
 X = df["x"].to_list()
 Y = df["y"].to_list()
 
+def best_hof(hof_list):
+    best = Inf
+    best_index = 0
+    for i in range(len(hof_list)):
+        if hof_list[i].fitness.values[0] <= best:
+            best = hof_list[i].fitness.values[0]
+            best_index = i
+    return hof_list[best_index]
 
 
 def protectedDiv(left, right):
@@ -60,18 +69,24 @@ mstats.register("std", numpy.std)
 mstats.register("min", numpy.min)
 mstats.register("max", numpy.max)
 
-pop = toolbox.population(n= 400)
-hof = tools.HallOfFame(1)
 
-CXPB = 0.6
-MUTPB = 0.1
-NGEN = 100
 
-pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
+def main(run: int):
+    pop = toolbox.population(n= 400)
+    hof = tools.HallOfFame(1)
+    pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
 
-print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
+    print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
 
-func = toolbox.compile(expr = hof[0])
+    print(log.chapters["fitness"].select("gen", "min"), "\n", type(log.chapters["fitness"].select("gen", "min")))
+
+    #code for average convergence data
+    col_name = "fit_run_{0}".format(run)
+    data = log.chapters["fitness"].select("gen", "min")
+    df[col_name] = data[1]
+
+    #keeping track of best sol for each run
+    hof_list.append(hof[0])
 
 
 # check function arguments 
@@ -79,11 +94,31 @@ func = toolbox.compile(expr = hof[0])
 # print(inspect.getargspec(func))
 
 
+CXPB = 0.6
+MUTPB = 0.1
+NGEN = 100
+hof_list = []
+
+gens = list(range(0, NGEN+1))
+df = pd.DataFrame(gens, columns = ["gens"])
+
+for i in range(2):
+    main(run = i)
+
+print("conv df:", df)
+
+print(hof_list)
+
+best_sol = best_hof(hof_list)
+print("best sol", best_sol.fitness.values)
+
+
 # plot the final best solution
-x = list(range(1, 255))
-y = [func(i) for i in x]
+# func = toolbox.compile(expr = best_sol[0])
+# x = list(range(1, 255))
+# y = [func(i) for i in x]
 
 
-plt.plot(x, y)
-plt.scatter(X, Y)
-plt.show()
+# plt.plot(x, y)
+# plt.scatter(X, Y)
+# plt.show()
