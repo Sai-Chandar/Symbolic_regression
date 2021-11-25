@@ -1,6 +1,7 @@
 from deap import base, creator, gp, tools, algorithms
 import operator, math, random, numpy
 from numpy.core.numeric import Inf
+from numpy.lib.shape_base import column_stack
 import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -72,7 +73,7 @@ mstats.register("max", numpy.max)
 
 
 def main(run: int):
-    pop = toolbox.population(n= 400)
+    pop = toolbox.population(n= POP)
     hof = tools.HallOfFame(1)
     pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
 
@@ -87,38 +88,65 @@ def main(run: int):
 
     #keeping track of best sol for each run
     hof_list.append(hof[0])
+    local_hof.append(hof[0])
 
 
 # check function arguments 
 # import inspect
 # print(inspect.getargspec(func))
-
-
-CXPB = 0.6
-MUTPB = 0.1
 NGEN = 100
+
+
 hof_list = []
 
-gens = list(range(0, NGEN+1))
-df = pd.DataFrame(gens, columns = ["gens"])
+# [300, 400, 500]
+# [0.4, 0.6, 0.8]
+# [0.1, 0.3, 0.5]
 
-for i in range(2):
-    main(run = i)
+for pop in [300, 400, 500]:
+    local_hof = []
+    for cx in [0.4, 0.6, 0.8]:
+        for mt in [0.1, 0.3, 0.5]:
+            CXPB = cx
+            MUTPB = mt
+            POP = pop
 
-print("conv df:", df)
+            gens = list(range(0, NGEN+1))
+            df = pd.DataFrame(gens, columns = ["gens"])
+
+            for i in range(30):
+                main(run = i)
+
+            df.to_csv("./solutions/problem1/cov_data/cov_data_pset1_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
+
+            print("conv df:", df)
+    
+    pop_best = best_hof(local_hof)
+    d = {'beat_fitness': [pop_best.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(pop_best))] }
+    pop_sol = pd.DataFrame(data= d)
+    pop_sol.to_csv("./solutions/problem1/pset1_pop_sol_{0}.csv".format(pop))
+    
+
 
 print(hof_list)
 
 best_sol = best_hof(hof_list)
-print("best sol", best_sol.fitness.values)
+print("best sol:", best_sol.fitness.values)
+d = {'beat_fitness': [best_sol.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(best_sol))] }
+sol = pd.DataFrame(data= d)
+sol.to_csv("./solutions/problem1/sol_pset1.csv")
 
 
 # plot the final best solution
-# func = toolbox.compile(expr = best_sol[0])
-# x = list(range(1, 255))
-# y = [func(i) for i in x]
+func = toolbox.compile(expr = best_sol)
+x = list(range(1, 255))
+y = [func(i) for i in x]
 
 
-# plt.plot(x, y)
-# plt.scatter(X, Y)
-# plt.show()
+plt.plot(x, y)
+plt.scatter(X, Y)
+plt.title("pset1_best_fit_val: {0}".format(best_sol.fitness.values[0]))
+plt.xlabel("x")
+plt.ylabel("y")
+
+plt.savefig("./solutions/problem1/plots/plot_pset1.png")

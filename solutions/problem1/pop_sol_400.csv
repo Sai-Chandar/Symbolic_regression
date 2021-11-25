@@ -1,0 +1,2 @@
+,beat_fitness,reg_equation
+0,15325488.337529957,"mul(x, add(x, add(x, x)))"
