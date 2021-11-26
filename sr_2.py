@@ -1,5 +1,6 @@
 from deap import base, creator, gp, tools, algorithms
 import operator, math, random, numpy
+from numpy.core.numeric import Inf
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -12,11 +13,26 @@ Y = df["y"].to_list()
 
 
 
+def best_hof(hof_list):
+    best = Inf
+    best_index = 0
+    for i in range(len(hof_list)):
+        if hof_list[i].fitness.values[0] <= best:
+            best = hof_list[i].fitness.values[0]
+            best_index = i
+    return hof_list[best_index]
+
+
 def protectedDiv(left, right):
     try:
         return left/right
     except ZeroDivisionError:
         return 1
+
+#pset1 -> [x, add, sub, mul, protectedDiv, neg, EphemeralConstant]
+#pset2 -> [x, mul, EphemeralConstant]
+#pset3 -> [x, protectedDiv, EphemeralConstant]
+
 
 pset = gp.PrimitiveSet("main", 3)
 pset.addPrimitive(operator.add, 2)
@@ -63,17 +79,72 @@ mstats.register("std", numpy.std)
 mstats.register("min", numpy.min)
 mstats.register("max", numpy.max)
 
-pop = toolbox.population(n= 400)
-hof = tools.HallOfFame(1)
 
-pop, log = algorithms.eaSimple(pop, toolbox, 0.6, 0.1, 100, stats = mstats, halloffame = hof, verbose=True)
+def main(run: int):
+    pop = toolbox.population(n= POP)
+    hof = tools.HallOfFame(1)
 
-print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
+    pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
 
-func = toolbox.compile(expr = hof[0])
+    # print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
 
-import inspect
-print(inspect.getargspec(func))
+    col_name = "fit_run_{0}".format(run)
+    data = log.chapters["fitness"].select("gen", "min")
+    df[col_name] = data[1]
+
+    #keeping track of best sol for each run
+    hof_list.append(hof[0])
+    local_hof.append(hof[0])
+
+
+
+
+NGEN = 100
+
+
+hof_list = []
+
+# [300, 400, 500]
+# [0.4, 0.6, 0.8]
+# [0.1, 0.3, 0.5]
+
+for pop in [300, 400, 500]:
+    local_hof = []
+    for cx in [0.4, 0.6, 0.8]:
+        for mt in [0.1, 0.3, 0.5]:
+            CXPB = cx
+            MUTPB = mt
+            POP = pop
+
+            gens = list(range(0, NGEN+1))
+            df = pd.DataFrame(gens, columns = ["gens"])
+
+            for i in range(30):
+                main(run = i)
+
+            df.to_csv("./solutions/problem2/cov_data/cov_data_pset1_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
+
+            print("Done with {0}, {1}, {2} case.".format(mt, cx, pop))
+    
+    pop_best = best_hof(local_hof)
+    d = {'beat_fitness': [pop_best.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(pop_best))] }
+    pop_sol = pd.DataFrame(data= d)
+    pop_sol.to_csv("./solutions/problem2/pset1_pop_sol_{0}.csv".format(pop))
+    
+
+
+# print(hof_list)
+
+best_sol = best_hof(hof_list)
+print("best sol:", best_sol.fitness.values)
+d = {'beat_fitness': [best_sol.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(best_sol))] }
+sol = pd.DataFrame(data= d)
+sol.to_csv("./solutions/problem2/sol_pset1.csv")
+
+
+
+# import inspect
+# print(inspect.getargspec(func))
 
 # x = list(range(1, 255))
 # y = [func(i) for i in x]
