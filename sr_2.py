@@ -35,11 +35,11 @@ def protectedDiv(left, right):
 
 
 pset = gp.PrimitiveSet("main", 3)
-pset.addPrimitive(operator.add, 2)
-pset.addPrimitive(operator.sub, 2)
+# pset.addPrimitive(operator.add, 2)
+# pset.addPrimitive(operator.sub, 2)
 pset.addPrimitive(operator.mul, 2)
-pset.addPrimitive(protectedDiv, 2)
-pset.addPrimitive(operator.neg, 1)
+# pset.addPrimitive(protectedDiv, 2)
+# pset.addPrimitive(operator.neg, 1)
 # pset.addPrimitive(math.cos, 1)
 # pset.addPrimitive(math.sin, 1)
 pset.addEphemeralConstant("c", lambda: random.uniform(-10000, 10000))
@@ -84,10 +84,11 @@ def main(run: int):
     pop = toolbox.population(n= POP)
     hof = tools.HallOfFame(1)
 
-    pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
+    pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=False)
 
     # print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
 
+    #code for average convergence data
     col_name = "fit_run_{0}".format(run)
     data = log.chapters["fitness"].select("gen", "min")
     df[col_name] = data[1]
@@ -122,14 +123,14 @@ for pop in [300, 400, 500]:
             for i in range(30):
                 main(run = i)
 
-            df.to_csv("./solutions/problem2/cov_data/cov_data_pset1_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
+            df.to_csv("./solutions/problem2/cov_data/cov_data_pset2_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
 
             print("Done with {0}, {1}, {2} case.".format(mt, cx, pop))
     
     pop_best = best_hof(local_hof)
     d = {'beat_fitness': [pop_best.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(pop_best))] }
     pop_sol = pd.DataFrame(data= d)
-    pop_sol.to_csv("./solutions/problem2/pset1_pop_sol_{0}.csv".format(pop))
+    pop_sol.to_csv("./solutions/problem2/pset2_pop_sol_{0}.csv".format(pop))
     
 
 
@@ -139,7 +140,7 @@ best_sol = best_hof(hof_list)
 print("best sol:", best_sol.fitness.values)
 d = {'beat_fitness': [best_sol.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(best_sol))] }
 sol = pd.DataFrame(data= d)
-sol.to_csv("./solutions/problem2/sol_pset1.csv")
+sol.to_csv("./solutions/problem2/sol_pset2.csv")
 
 
 

@@ -1,0 +1,2 @@
+,beat_fitness,reg_equation
+0,3.099140208345425e-06,"protectedDiv(protectedDiv(add(x1, x1), protectedDiv(x3, 8665.238248741854)), add(add(x2, x2), add(55.392953367800146, x3)))"
