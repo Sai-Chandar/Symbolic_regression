@@ -1,0 +1,2 @@
+,beat_fitness,reg_equation
+0,8.764032028072561,"mul(mul(-5921.245997321061, protectedDiv(x, -1884.339469404692)), add(x, protectedDiv(x, -4864.6494663483545)))"

@@ -27,12 +27,15 @@ def protectedDiv(left, right):
     except ZeroDivisionError:
         return 1
 
+#pset1 -> [x, add, sub, mul, protectedDiv, neg, EphemeralConstant]
+#pset2 -> [x, mul, EphemeralConstant]
+
 pset = gp.PrimitiveSet("main", 1)
-pset.addPrimitive(operator.add, 2)
-pset.addPrimitive(operator.sub, 2)
+# pset.addPrimitive(operator.add, 2)
+# pset.addPrimitive(operator.sub, 2)
 pset.addPrimitive(operator.mul, 2)
-pset.addPrimitive(protectedDiv, 2)
-pset.addPrimitive(operator.neg, 1)
+# pset.addPrimitive(protectedDiv, 2)
+# pset.addPrimitive(operator.neg, 1)
 # pset.addPrimitive(math.cos, 1)
 # pset.addPrimitive(math.sin, 1)
 pset.addEphemeralConstant("c", lambda: random.uniform(-10000, 10000))
@@ -75,11 +78,11 @@ mstats.register("max", numpy.max)
 def main(run: int):
     pop = toolbox.population(n= POP)
     hof = tools.HallOfFame(1)
-    pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=True)
+    pop, log = algorithms.eaSimple(pop, toolbox, CXPB, MUTPB, NGEN, stats = mstats, halloffame = hof, verbose=False)
 
-    print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
+    # print("Best_fintess_value:",  hof[0].fitness.values, "\nRegression_equation_for_the_best:", str(gp.PrimitiveTree(hof[0])))
 
-    print(log.chapters["fitness"].select("gen", "min"), "\n", type(log.chapters["fitness"].select("gen", "min")))
+    # print(log.chapters["fitness"].select("gen", "min"), "\n", type(log.chapters["fitness"].select("gen", "min")))
 
     #code for average convergence data
     col_name = "fit_run_{0}".format(run)
@@ -117,24 +120,24 @@ for pop in [300, 400, 500]:
             for i in range(30):
                 main(run = i)
 
-            df.to_csv("./solutions/problem1/cov_data/cov_data_pset1_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
+            df.to_csv("./solutions/problem1/cov_data/cov_data_pset2_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
 
-            print("conv df:", df)
+            print("Done with {0}, {1}, {2} case.".format(mt, cx, pop))
     
     pop_best = best_hof(local_hof)
     d = {'beat_fitness': [pop_best.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(pop_best))] }
     pop_sol = pd.DataFrame(data= d)
-    pop_sol.to_csv("./solutions/problem1/pset1_pop_sol_{0}.csv".format(pop))
+    pop_sol.to_csv("./solutions/problem1/pset2_pop_sol_{0}.csv".format(pop))
     
 
 
-print(hof_list)
+# print(hof_list)
 
 best_sol = best_hof(hof_list)
 print("best sol:", best_sol.fitness.values)
 d = {'beat_fitness': [best_sol.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(best_sol))] }
 sol = pd.DataFrame(data= d)
-sol.to_csv("./solutions/problem1/sol_pset1.csv")
+sol.to_csv("./solutions/problem1/sol_pset2.csv")
 
 
 # plot the final best solution
@@ -145,8 +148,8 @@ y = [func(i) for i in x]
 
 plt.plot(x, y)
 plt.scatter(X, Y)
-plt.title("pset1_best_fit_val: {0}".format(best_sol.fitness.values[0]))
+plt.title("pset2_best_fit_val: {0}".format(best_sol.fitness.values[0]))
 plt.xlabel("x")
 plt.ylabel("y")
 
-plt.savefig("./solutions/problem1/plots/plot_pset1.png")
+plt.savefig("./solutions/problem1/plots/plot_pset2.png")
