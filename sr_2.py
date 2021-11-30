@@ -3,6 +3,7 @@ import operator, math, random, numpy
 from numpy.core.numeric import Inf
 import pandas as pd
 import matplotlib.pyplot as plt
+import inspect
 
 df = pd.read_csv("data2.csv")
 
@@ -37,8 +38,8 @@ def protectedDiv(left, right):
 pset = gp.PrimitiveSet("main", 3)
 # pset.addPrimitive(operator.add, 2)
 # pset.addPrimitive(operator.sub, 2)
-pset.addPrimitive(operator.mul, 2)
-# pset.addPrimitive(protectedDiv, 2)
+# pset.addPrimitive(operator.mul, 2)
+pset.addPrimitive(protectedDiv, 2)
 # pset.addPrimitive(operator.neg, 1)
 # pset.addPrimitive(math.cos, 1)
 # pset.addPrimitive(math.sin, 1)
@@ -59,6 +60,7 @@ toolbox.register("compile", gp.compile, pset = pset)
 
 def evalSymbReg(individual, points):
     func = toolbox.compile(expr = individual)
+    # print(inspect.getargspec(func))
     sqerrors = ((func(x1, x2, x3) - y)**2 for x1, x2, x3, y in zip(X1, X2, X3, points))
     return math.fsum(sqerrors)/ len(points),
 
@@ -123,14 +125,14 @@ for pop in [300, 400, 500]:
             for i in range(30):
                 main(run = i)
 
-            df.to_csv("./solutions/problem2/cov_data/cov_data_pset2_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
+            df.to_csv("./solutions/problem2/cov_data/cov_data_pset3_{0}_{1}_{2}.csv".format(CXPB, MUTPB, POP))
 
             print("Done with {0}, {1}, {2} case.".format(mt, cx, pop))
     
     pop_best = best_hof(local_hof)
     d = {'beat_fitness': [pop_best.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(pop_best))] }
     pop_sol = pd.DataFrame(data= d)
-    pop_sol.to_csv("./solutions/problem2/pset2_pop_sol_{0}.csv".format(pop))
+    pop_sol.to_csv("./solutions/problem2/pset3_pop_sol_{0}.csv".format(pop))
     
 
 
@@ -140,7 +142,7 @@ best_sol = best_hof(hof_list)
 print("best sol:", best_sol.fitness.values)
 d = {'beat_fitness': [best_sol.fitness.values[0]], 'reg_equation': [str(gp.PrimitiveTree(best_sol))] }
 sol = pd.DataFrame(data= d)
-sol.to_csv("./solutions/problem2/sol_pset2.csv")
+sol.to_csv("./solutions/problem2/sol_pset3.csv")
 
 
 
